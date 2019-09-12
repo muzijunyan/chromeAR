@@ -1,0 +1,115 @@
+<!doctype html>
+<!--
+Original Example - 
+-->
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1, user-scalable=no'>
+  <meta name='mobile-web-app-capable' content='yes'>
+  <meta name='apple-mobile-web-app-capable' content='yes'>
+
+  <title>Sphere AR</title>
+</head>
+
+<body>
+  <header>
+    <p>
+      This sample demonstrates an analytical scenario in an Augmented Reality environment.
+    </p>
+    <button id="startAR" type="button" disabled>Start AR</button>
+  </header>
+  <script type="module">
+    import {Scene} from './js/scene/scene.js';
+      import {Renderer, createWebGLContext} from './js/core/renderer.js';
+      import {Gltf2Node} from './js/nodes/gltf2.js';
+
+      // XR globals.
+      let xrButton = document.getElementById("startAR");
+      let xrRefSpace = null;
+
+      // WebGL scene globals.
+      let gl = null;
+      let renderer = null;
+      let scene = new Scene();
+      let spheres = new Gltf2Node({url: './media/spheres.gltf'});
+      // The solar system is big (citation needed). Scale it down so that users can
+      // move around the planets more easily.
+      spheres.scale = [0.6, 0.6, 0.6];
+      scene.addNode(spheres);
+
+      // No skybox is added to this scene, and we're not clearing the background to
+      // black because we want the real world to show through.
+      scene.clear = false;
+
+      function initXR() {
+
+        if (navigator.xr) {
+          // Checks to ensure that environment integration (AR) is available,
+          // and only enables the button if so.
+          navigator.xr.supportsSession('immersive-ar').then(() => {
+            xrButton.disabled = false;
+            xrButton.addEventListener('click', ()=> onRequestSession());
+          });
+        }
+      }
+
+      function onRequestSession() {
+        // Requests an inline (non-immersive) session with environment integration
+        // to get AR via video passthrough.
+
+        // Even though this is a non-immersive session, the fact that it's
+        // using environment integration means it must be requested in a user
+        // activation event so that appropriate permissions can be granted.
+        // This will likely prompt the user to allow camera use, so the promise
+        // may remain outstanding for a while.
+        navigator.xr.requestSession('immersive-ar')
+            .then((session) => {
+              onSessionStarted(session);
+            });
+      }
+
+      function onSessionStarted(session) {
+        if (!gl) {
+          gl = createWebGLContext({
+            xrCompatible: true
+          });
+
+          renderer = new Renderer(gl);
+
+          scene.setRenderer(renderer);
+        }
+
+        session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
+
+        session.requestReferenceSpace('local').then((refSpace) => {
+          xrRefSpace = refSpace;
+          session.requestAnimationFrame(onXRFrame);
+        });
+      }
+
+      function onEndSession(session) {
+        session.end();
+      }
+
+      // Called every time a XRSession requests that a new frame be drawn.
+      function onXRFrame(t, frame) {
+        let session = frame.session;
+        let pose = frame.getViewerPose(xrRefSpace);
+
+        scene.startFrame();
+
+        session.requestAnimationFrame(onXRFrame);
+
+        scene.drawXRFrame(frame, pose);
+
+        scene.endFrame();
+      }
+
+      // Start the XR application.
+      initXR();
+    </script>
+</body>
+
+</html>
