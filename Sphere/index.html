@@ -33,6 +33,7 @@ Original Example -
       let gl = null;
       let renderer = null;
       let scene = new Scene();
+      scene.enableStats(false);
       let spheres = new Gltf2Node({url: './media/spheres.gltf'});
       // The solar system is big (citation needed). Scale it down so that users can
       // move around the planets more easily.
