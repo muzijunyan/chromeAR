@@ -16,14 +16,14 @@ Original Example -
 <body>
   <header>
     <p>
-      This sample demonstrates an analytical scenario in an Augmented Reality environment.
+      This sample demonstrates a 3D sphere in an Augmented Reality environment.
     </p>
     <button id="startAR" type="button" disabled>Start AR</button>
   </header>
   <script type="module">
-    import {Scene} from './js/scene/scene.js';
-      import {Renderer, createWebGLContext} from './js/core/renderer.js';
-      import {Gltf2Node} from './js/nodes/gltf2.js';
+    import {Scene} from 'https://immersive-web.github.io/webxr-samples/js/render/scenes/scene.js';
+      import {Renderer, createWebGLContext} from 'https://immersive-web.github.io/webxr-samples/js/render/core/renderer.js';
+      import {Gltf2Node} from 'https://immersive-web.github.io/webxr-samples/js/render/nodes/gltf2.js';
 
       // XR globals.
       let xrButton = document.getElementById("startAR");
@@ -36,7 +36,7 @@ Original Example -
       let spheres = new Gltf2Node({url: './media/spheres.gltf'});
       // The solar system is big (citation needed). Scale it down so that users can
       // move around the planets more easily.
-      spheres.scale = [0.6, 0.6, 0.6];
+      spheres.scale = [0.1, 0.1, 0.1];
       scene.addNode(spheres);
 
       // No skybox is added to this scene, and we're not clearing the background to
@@ -48,7 +48,7 @@ Original Example -
         if (navigator.xr) {
           // Checks to ensure that environment integration (AR) is available,
           // and only enables the button if so.
-          navigator.xr.supportsSession('immersive-ar').then(() => {
+          navigator.xr.supportsSession('inline').then(() => {
             xrButton.disabled = false;
             xrButton.addEventListener('click', ()=> onRequestSession());
           });
@@ -64,7 +64,7 @@ Original Example -
         // activation event so that appropriate permissions can be granted.
         // This will likely prompt the user to allow camera use, so the promise
         // may remain outstanding for a while.
-        navigator.xr.requestSession('immersive-ar')
+        navigator.xr.requestSession('inline')
             .then((session) => {
               onSessionStarted(session);
             });
