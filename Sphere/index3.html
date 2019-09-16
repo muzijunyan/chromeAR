@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>3D Sphere in AR environment with three.js</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+</head>
+<style>
+	body {
+		margin: 0;
+		background-color: rgba(0, 0, 0, 0);
+		color: #fff;
+	}
+
+	#startAR {
+		position: absolute;
+		left: calc(50% - 50px);
+		width: 100px;
+		bottom: 20px;
+		padding: 12px 6px;
+		background: rgba(0, 0, 0, 0.1);
+		text-align: center;
+		opacity: 0.5;
+		color: #fff;
+		z-Index: 999;
+	}
+</style>
+
+<body>
+	<button id="startAR" type="button" disabled>Start AR</button>
+	<script type="module">
+		import * as THREE from './threejs/three.module.js';
+		
+		var camera, scene, renderer;
+		var controller;
+		init();
+		animate();
+		function init() {
+			scene = new THREE.Scene();
+			scene.background = new THREE.Color('rgba(0,0,0,0)'); //new THREE.Color( 0x505050 );
+			camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 10 );
+
+			var light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
+			light.position.set( 1, 1, 1 );
+			scene.add( light );
+
+			const axesHelper = new THREE.AxesHelper(2);
+			scene.add(axesHelper);
+
+			// SPHERE
+			var geometry = new THREE.IcosahedronBufferGeometry( 0.08, 2 );
+			var object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: new THREE.Color("red") } ) );
+			object.position.x = 0;
+			object.position.y = 1.5;
+			object.position.z = -1;
+			scene.add(object);
+
+			// renderer
+			renderer = new THREE.WebGLRenderer( { antialias: true } );
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			renderer.vr.enabled = true;
+			document.body.appendChild( renderer.domElement );
+			
+			// init AR
+			let xrButton = document.getElementById("startAR");
+			function onRequestSession() {
+        		navigator.xr.requestSession('immersive-ar').then((session) => {
+              		onSessionStarted(session);
+            	});
+			}
+
+			function onSessionStarted(session) {
+            	renderer.vr.setSession(session);
+			}
+		
+			if (navigator.xr) {
+  				navigator.xr.supportsSession('immersive-ar').then(() => {
+					xrButton.disabled = false;
+					xrButton.addEventListener('click', ()=> onRequestSession());
+  				});
+			}
+		}
+
+		function animate() {
+			renderer.setAnimationLoop( render );
+		}
+
+		function render() {
+			renderer.render( scene, camera );
+		}
+
+	</script>
+</body>
+
+</html>
