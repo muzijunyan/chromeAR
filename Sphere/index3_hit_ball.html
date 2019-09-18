@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-	<title>3D Sphere in AR environment with three.js</title>
+	<title>Hit ball in AR environment with three.js</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 </head>
@@ -33,19 +33,36 @@
 		import * as THREE from './threejs/three.module.js';
 		
 		var camera, scene, renderer;
-		var controller;
+		var ball;
+		var raycaster;
+
 		init();
 		animate();
 		function init() {
 			scene = new THREE.Scene();
 			camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 10 );
+			scene.add(camera);
 
 			let light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
 			light.position.set( 1, 1, 1 );
 			scene.add( light );
 
-			let axesHelper = new THREE.AxesHelper(2);
-			scene.add(axesHelper);
+			// add crosshair to camera
+			let crosshair = new THREE.Mesh(
+				new THREE.RingBufferGeometry( 0.02, 0.04, 32 ),
+				new THREE.MeshBasicMaterial( {
+					color: 0xffffff,
+					opacity: 0.5,
+					transparent: true
+				})
+			);
+			crosshair.position.z = - 2;
+			camera.add( crosshair );
+
+			// set a ball / SPHERE in AR
+			ball = createSphereAt(0, 1.5, -1)
+			ball.originalHex = ball.material.emissive.getHex();
+			scene.add(ball);
 
 			// renderer
 			renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -53,7 +70,8 @@
 			renderer.setSize( window.innerWidth, window.innerHeight );
 			renderer.vr.enabled = true;
 			document.body.appendChild( renderer.domElement );
-			
+			renderer.render( scene, camera );
+
 			// init AR
 			let xrButton = document.getElementById("startAR");
 			function onRequestSession() {
@@ -61,9 +79,6 @@
               		onSessionStarted(session);
             	});
 			}
-
-			// set a SPHERE in AR
-			scene.add(createSphereAt(0, 1.5, -1));
 
 			function onSessionStarted(session) {
             	renderer.vr.setSession(session);
@@ -76,6 +91,9 @@
 					xrButton.addEventListener('click', ()=> onRequestSession());
   				});
 			}
+
+			// initial raycaster
+			raycaster = new THREE.Raycaster();
 		}
 
 		function animate() {
@@ -83,6 +101,16 @@
 		}
 
 		function render() {
+			// find intersections
+			raycaster.setFromCamera({ x: 0, y: 0 }, camera);
+			let intersects = raycaster.intersectObjects([ball]);
+			if ( intersects.length > 0 ) {
+				// tha ball is hit
+				ball.material.emissive.setHex( 0x00ff00 );
+			} else {
+				ball.material.emissive.setHex( ball.originalHex );
+			}
+
 			renderer.render( scene, camera );
 		}
 
