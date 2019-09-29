@@ -5,47 +5,33 @@
 	<title>Hit ball in AR environment with three.js</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<link rel="stylesheet" type="text/css" href="../css/styles.css">
 </head>
-<style>
-	body {
-		margin: 0;
-		background-color: rgba(0, 0, 0, 0);
-		color: #fff;
-	}
-
-	#startAR {
-		position: absolute;
-		left: calc(50% - 50px);
-		width: 100px;
-		bottom: 20px;
-		padding: 12px 6px;
-		background: rgba(0, 0, 0, 0.1);
-		text-align: center;
-		opacity: 0.5;
-		color: #fff;
-		z-Index: 999;
-	}
-</style>
 
 <body>
-	<button id="startAR" type="button" disabled>AR NOT FOUND</button>
 	<script type="module">
 		import * as THREE from './threejs/three.module.js';
-		
-		var camera, scene, renderer;
-		var ball;
-		var raycaster;
+		import { setRenderer }  from '../js/initAR.js';
 
-		init();
-		animate();
-		function init() {
-			scene = new THREE.Scene();
-			camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 10 );
-			scene.add(camera);
+		let scene = new THREE.Scene();
+		let camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 10 );
+		let renderer = new THREE.WebGLRenderer( { antialias: true } );
+		let raycaster = new THREE.Raycaster();
 
-			let light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
-			light.position.set( 1, 1, 1 );
-			scene.add( light );
+		// set a ball / SPHERE in AR
+		let ball = createSphereAt(0, 1.5, -1);
+		ball.originalHex = ball.material.emissive.getHex();
+		initScene(scene, ball);
+		setRenderer(renderer, render);
+
+		function initScene(scene, content) {
+			// add light
+			let light = new THREE.HemisphereLight(0xffffff, 0x444444);
+			light.position.set(1, 1, 1);
+			scene.add(light);
+
+			// add content in AR
+			scene.add(content);
 
 			// add crosshair to camera
 			let crosshair = new THREE.Mesh(
@@ -58,46 +44,7 @@
 			);
 			crosshair.position.z = - 2;
 			camera.add( crosshair );
-
-			// set a ball / SPHERE in AR
-			ball = createSphereAt(0, 1.5, -1)
-			ball.originalHex = ball.material.emissive.getHex();
-			scene.add(ball);
-
-			// renderer
-			renderer = new THREE.WebGLRenderer( { antialias: true } );
-			renderer.setPixelRatio( window.devicePixelRatio );
-			renderer.setSize( window.innerWidth, window.innerHeight );
-			renderer.vr.enabled = true;
-			document.body.appendChild( renderer.domElement );
-			renderer.render( scene, camera );
-
-			// init AR
-			let xrButton = document.getElementById("startAR");
-			function onRequestSession() {
-        		navigator.xr.requestSession('immersive-ar').then((session) => {
-              		onSessionStarted(session);
-            	});
-			}
-
-			function onSessionStarted(session) {
-            	renderer.vr.setSession(session);
-			}
-		
-			if (navigator.xr) {
-  				navigator.xr.supportsSession('immersive-ar').then(() => {
-					xrButton.disabled = false;
-					xrButton.innerHTML = "Start AR"
-					xrButton.addEventListener('click', ()=> onRequestSession());
-  				});
-			}
-
-			// initial raycaster
-			raycaster = new THREE.Raycaster();
-		}
-
-		function animate() {
-			renderer.setAnimationLoop( render );
+			scene.add(camera);
 		}
 
 		function render() {
@@ -117,9 +64,7 @@
 		function createSphereAt(x, y, z) {
 			let geometry = new THREE.IcosahedronBufferGeometry( 0.08, 2 );
 			let object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: new THREE.Color("red") } ) );
-			object.position.x = x;
-			object.position.y = y;
-			object.position.z = z;
+			object.position.set(x, y, z);
 			return object;
 		}
 	</script>

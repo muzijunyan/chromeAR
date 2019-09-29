@@ -29,14 +29,18 @@ You need to have:
 
     After you confirm to start the AR scene and go around with your device, you could see a red 3D sphere placed in your environment.
 
+    ![Sphere in AR](images/ar_ball.png)
+
 3. Hit the 3D Sphere (ray casting) with [three.js](https://threejs.org/):
 
     This [sample](Sphere/index3_hit_ball.html) demonstrates how you can use ray casting to hit the 3D sphere in the AR with your device ([live example](https://muzijunyan.github.io/chromeAR/Sphere/index3_hit_ball.html)). 
     
     You can go around with your device, with the help of the crosshair shown on your device screen, to aim the sphere to see the hit effect.
 
-4. other samples:
+4. Building Blocks and Composed Duck:
 
-    <i>...coming soon...<i>
+    This [sample](scenes/index.html) demonstrates how to use simple geometry (building blocks) to create a lego-like composed duck, and use ray casting to hit the single building blocks ([live example](https://muzijunyan.github.io/chromeAR/scenes/index.html)). 
+
+
 
 

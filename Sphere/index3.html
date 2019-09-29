@@ -5,93 +5,47 @@
 	<title>3D Sphere in AR environment with three.js</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<link rel="stylesheet" type="text/css" href="../css/styles.css">
 </head>
-<style>
-	body {
-		margin: 0;
-		background-color: rgba(0, 0, 0, 0);
-		color: #fff;
-	}
-
-	#startAR {
-		position: absolute;
-		left: calc(50% - 50px);
-		width: 100px;
-		bottom: 20px;
-		padding: 12px 6px;
-		background: rgba(0, 0, 0, 0.1);
-		text-align: center;
-		opacity: 0.5;
-		color: #fff;
-		z-Index: 999;
-	}
-</style>
 
 <body>
 	<button id="startAR" type="button" disabled>AR NOT FOUND</button>
 	<script type="module">
 		import * as THREE from './threejs/three.module.js';
-		
-		var camera, scene, renderer;
-		var controller;
-		init();
-		animate();
-		function init() {
-			scene = new THREE.Scene();
-			camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 10 );
+		import { setRenderer }  from '../js/initAR.js';
 
-			let light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
-			light.position.set( 1, 1, 1 );
-			scene.add( light );
+		let scene = new THREE.Scene();
+		let camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 10 );
+		let renderer = new THREE.WebGLRenderer( { antialias: true } );
 
-			let axesHelper = new THREE.AxesHelper(2);
-			scene.add(axesHelper);
+		initScene(scene, createSphereAt(0, 1.5, -1), {
+			showAxes: true
+		});
+		setRenderer(renderer, render);
 
-			// renderer
-			renderer = new THREE.WebGLRenderer( { antialias: true } );
-			renderer.setPixelRatio( window.devicePixelRatio );
-			renderer.setSize( window.innerWidth, window.innerHeight );
-			renderer.vr.enabled = true;
-			document.body.appendChild( renderer.domElement );
-			
-			// init AR
-			let xrButton = document.getElementById("startAR");
-			function onRequestSession() {
-        		navigator.xr.requestSession('immersive-ar').then((session) => {
-              		onSessionStarted(session);
-            	});
+		function initScene(scene, content, options) {
+			// add light
+			let light = new THREE.HemisphereLight(0xffffff, 0x444444);
+			light.position.set(1, 1, 1);
+			scene.add(light);
+
+			// add axes
+			if (options && options.showAxes) {
+				let axesHelper = new THREE.AxesHelper(2);
+				scene.add(axesHelper);
 			}
-
-			// set a SPHERE in AR
-			scene.add(createSphereAt(0, 1.5, -1));
-
-			function onSessionStarted(session) {
-            	renderer.vr.setSession(session);
-			}
-		
-			if (navigator.xr) {
-  				navigator.xr.supportsSession('immersive-ar').then(() => {
-					xrButton.disabled = false;
-					xrButton.innerHTML = "Start AR"
-					xrButton.addEventListener('click', ()=> onRequestSession());
-  				});
-			}
-		}
-
-		function animate() {
-			renderer.setAnimationLoop( render );
-		}
+			// add content in AR
+			scene.add(content);
+		};
 
 		function render() {
-			renderer.render( scene, camera );
+			renderer.render(scene, camera);
 		}
 
 		function createSphereAt(x, y, z) {
 			let geometry = new THREE.IcosahedronBufferGeometry( 0.08, 2 );
 			let object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: new THREE.Color("red") } ) );
-			object.position.x = x;
-			object.position.y = y;
-			object.position.z = z;
+			object.position.set(x, y, z);
 			return object;
 		}
 	</script>

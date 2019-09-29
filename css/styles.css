@@ -1,0 +1,18 @@
+body {
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0);
+    color: #fff;
+}
+
+#startAR {
+    position: absolute;
+    left: calc(50% - 50px);
+    width: 100px;
+    bottom: 20px;
+    padding: 12px 6px;
+    background: rgba(0, 0, 0, 0.1);
+    text-align: center;
+    opacity: 0.5;
+    color: #fff;
+    z-Index: 999;
+}
