@@ -1,0 +1,98 @@
+<html>
+
+<head>
+    <title>AR Scene with three.js</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" type="text/css" href="../css/styles.css">
+</head>
+
+<body>
+    <script src="https://threejs.org/build/three.js"></script>
+    <script src="duck.js"></script>
+    <script>
+        let scene = new THREE.Scene();
+        let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        let renderer = new THREE.WebGLRenderer({
+            antialias: true
+        });
+
+        let light = new THREE.HemisphereLight(0xffffff, 0x444444);
+        light.position.set(1, 1, 1);
+        scene.add(light);
+
+        let content = new THREE.Object3D();
+        let sphere = createSphereAt(-1, 1.5, -1);
+        content.add(sphere);
+        let cube = createCube(1, 1.5, -1);
+        content.add(cube);
+        scene.add(content);
+
+        let duck = createDuck(); // composed object
+        scene.add(duck);
+
+
+        function createSphereAt(x, y, z) {
+            let geometry = new THREE.IcosahedronBufferGeometry(0.08, 2);
+            let object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+                color: new THREE.Color("red")
+            }));
+            object.position.set(x, y, z);
+            return object;
+        }
+
+        function createCube(x, y, z) {
+            let geometry = new THREE.BoxBufferGeometry(0.1, 0.1, 0.1);
+            let material = new THREE.MeshBasicMaterial({
+                color: 0x00ff00
+            });
+            let cube = new THREE.Mesh(geometry, material);
+            cube.position.set(x, y, z);
+            return cube;
+        }
+
+        // add crosshair to camera
+        let crosshair = new THREE.Mesh(
+            new THREE.RingBufferGeometry(0.02, 0.04, 32),
+            new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                opacity: 0.5,
+                transparent: true
+            })
+        );
+        crosshair.position.z = -2;
+        camera.add(crosshair);
+        scene.add(camera);
+    </script>
+
+    <script type="module">
+        import { setRenderer }  from '../js/initAR.js';
+        let raycaster = new THREE.Raycaster();
+        let intersected;
+         // init AR
+         setRenderer(renderer, render);
+
+         function render() {
+            cube.rotation.x += 0.01;
+            cube.rotation.y += 0.01;
+
+            // find intersections
+			raycaster.setFromCamera({ x: 0, y: 0 }, camera);
+			let intersects = raycaster.intersectObjects(content.children.concat(duck.children));
+			if ( intersects.length > 0 ) {
+				if (!intersected || intersected != intersects[0].object) {
+                    if (intersected) intersected.material.opacity = 1;
+                    intersects[0].object.material.opacity = 0.4;
+                    intersected = intersects[0].object;
+                }
+			} else {
+                if (intersected) intersected.material.opacity = 1;
+                intersected = null;
+            }
+            
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+
+</html>
